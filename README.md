@@ -9,6 +9,16 @@
 >7. object - ассоциативный массив
 >8. symbol
 
+
+## Что нового привнес в JS стандарт ES6 или ECMAScript2015?
+>1. Стрелочные функции
+>2. Классы
+>3. Промисы
+>4. Symbol
+>5. rest, spread
+>6. let, const
+>7. Деструктуризация
+>8. Шаблонные строки ('\n')
 ## В чем разница между значениями `null` и `undefined`?
 
 В JavaScript `null` и `undefined` представляют отсутствие значения, но у них есть небольшие различия в их семантике и использовании.
@@ -107,6 +117,15 @@ class Person {
 
 var john = new Person("John", 30, "New York");
 ```
+### В чем разница между оператором «in» и методом hasOwnProperty?
+Отличие состоит в том, что оператор «in» проверяет наличие свойства не только в самом объекте, но и в его прототипах, а метод hasOwnProperty — только в объекте.
+```javascript
+console.log('prop' in o) // true
+console.log('toString' in o) // true
+
+console.log(o.hasOwnProperty('prop')) // true
+console.log(o.hasOwnProperty('toString')) // false
+```
 ### Сравнение двух объектов
 >1. JSON.stringify()
 >2. Написать свою функцию, которая будет проходить через каждое св-во и сравнивать со свойством другого объекта. Пример: 
@@ -137,6 +156,16 @@ function isDeepEqual(obj1, obj2) {
 >6. Object.seal() - предотвращает добавление новых свойств объекта, но позволяет изменять существующие свойства.
 >7. Object.getPrototypeOf() - используется для получения внутреннего скрытого [[Prototype]] объекта, также доступного через свойство __proto__.
 
+## Что такое прототип объекта?
+В двух словах, прототип — это план (схема или проект) объекта. Он используется как запасной вариант для свойств и методов, существующих в данном объекте. Это также один из способов обмена свойствами и функциональностью между объектами. Это основная концепция прототипного наследования в JS.
+```javascript
+const o = {}
+console.log(o.toString()) // [object Object]
+```
+Несмотря на то, что объект «о» не имеет свойства toString, обращение к этому свойству не вызывает ошибки. Если определенного свойства нет в объекте, его поиск осуществляется сначала в прототипе объекта, затем в прототипе прототипа объекта и так до тех пор, пока свойство не будет найдено. Это называется цепочкой прототипов. На вершине цепочки прототипов находится Object.prototype.
+```javascript
+console.log(o.toString === Object.prototype.toString) // true
+```
 ### Разница между `call`, `apply` и `bind`
 
 В JavaScript, методы `call`, `apply` и `bind` используются для установки контекста выполнения функции и передачи аргументов.
@@ -149,7 +178,115 @@ function isDeepEqual(obj1, obj2) {
 
 Основное отличие между `call`, `apply` и `bind` заключается в способе передачи аргументов. `call` передает аргументы в виде отдельных значений, `apply` передает аргументы в виде массива, а `bind` создает новую функцию с предустановленными аргументами.
 
+## Какое значение имеет this?
+Обычно this ссылается на значение объекта, который в данный момент выполняет или вызывает функцию. «В данный момент» означает, что значение this меняется в зависимости от контекста выполнения, от того места, где мы используем this.
 
+```javascript
+const carDetails = {
+    name: 'Ford Mustang',
+    yearBought: 2005,
+    getName() {
+        return this.name
+    }
+    isRegistered: true
+}
+
+console.log(carDetails.getName()) // Ford Mustang
+```
+
+
+В данном случае метод getName возвращает this.name, а this ссылается на carDetails, объект, в котором выполняется getName, который является ее «владельцем».
+
+Добавим после console.log три строчки:
+```javascript
+var name = 'Ford Ranger'
+var getCarName = carDetails.getName
+
+console.log(getCarName()) // Ford Ranger
+```
+
+Второй console.log выдает Ford Ranger, и это странно. Причина такого поведения заключается в том, что «владельцем» getCarName является объект window. Переменные, объявленные с помощью ключевого слова «var» в глобальной области видимости, записываются в свойства объекта window. this в глобальной области видимости ссылается на объект window (если речь не идет о строгом режиме).
+```javascript
+console.log(getCarName === window.getCarName) // true
+console.log(getCarName === this.getCarName) // true
+```
+В этом примере this и window ссылаются на один объект.
+
+Одним из способов решения данной проблемы является использование методов call или apply:
+
+```javascript
+console.log(getCarName.apply(carDetails)) // Ford Mustang
+console.log(getCarName.call(carDetails)) // Ford Mustang
+```
+
+Call и apply принимают в качестве первого аргумента объект, который будет являться значением this внутри функции.
+
+В IIFE, функциях, которые создаются в глобальном области видимости, анонимных функциях и внутренних функциях методов объекта значением this по умолчанию является объект window.
+```javascript
+(function() {
+	console.log(this)
+})() // window
+
+function iHateThis() {
+	console.log(this)
+}
+iHateThis() // window
+
+const myFavouriteObj = {
+	guessThis() {
+		function getName() {
+			console.log(this.name)
+		}
+		getName()
+	},
+	name: 'Marko Polo',
+	thisIsAnnoying(callback) {
+		callback()
+	}
+}
+
+myFavouriteObj.guessThis() // window
+myFavouriteObj.thisIsAnnoying(function() {
+	console.log(this) // window
+})
+```
+Существует два способа получить «Marko Polo».
+
+Во-первых, мы можем сохранить значение this в переменной:
+```javascript
+const myFavoriteObj = {
+    guessThis() {
+        const self = this // сохраняем значение this в переменной self
+        function getName() {
+            console.log(self.name)
+        }
+        getName()
+    },
+    name: 'Marko Polo',
+    thisIsAnnoying(callback) {
+        callback()
+    }
+}
+```
+
+Во-вторых, мы можем использовать стрелочную функцию:
+```javascript
+const myFavoriteObj = {
+    guessThis() {
+        const getName = () => {
+            // копируем значение this из внешнего окружения
+            console.log(this.name)
+        }
+        getName()
+    },
+    name: 'Marko Polo',
+    thisIsAnnoying(callback) {
+        callback()
+    }
+}
+```
+
+Стрелочные функции не имеют собственного значения this. Они копируют значение this из внешнего лексического окружения.
 ## Массивы
 ### Перебор массива 
 >1. for(let i = 0; i < arr.length; i++)
@@ -206,6 +343,34 @@ Map, с другой стороны, является коллекцией, гд
 ## Что такое область видимости (scope) в JavaScript?
 
 Область видимости (scope) в JavaScript определяет, где и какие переменные и функции будут видимы и доступны в определенной части кода. Область видимости контролирует, какие имена переменных можно использовать в данной части программы и какие не мешают друг другу.
+
+## Что такое хойстинг (hoisting) в JavaScript?
+
+Хостинг (hoisting) в JavaScript - это поведение, при котором объявления переменных и функций перемещаются в начало своей области видимости во время компиляции (до выполнения кода). Это может привести к тому, что вы можете обращаться к переменным или функциям до их фактического объявления.
+
+### Пример хойстинга переменных:
+
+```javascript
+console.log(message); // undefined, но не будет ошибки
+var message = "Привет, хойстинг!";
+console.log(message); // "Привет, хостинг!"
+```
+
+Первый вызов `console.log()` покажет `undefined`, потому что переменная `message` уже поднята (hoisted) в начало области видимости, но ей еще не присвоено значение. Второй вызов покажет фактическое значение переменной.
+
+### Пример хойстинга функций:
+
+```javascript
+greet(); // "Привет, хойстинг функций!"
+
+function greet() {
+  console.log("Привет, хойстинг функций!");
+}
+```
+
+В этом примере функция `greet()` также поднимается в начало области видимости, поэтому её можно вызвать до фактического объявления.
+
+Хойстинг может быть запутанным и привести к неожиданным результатам, поэтому рекомендуется всегда объявлять переменные и функции перед их использованием.
 
 ## Var, let, const
 >1. var - для скуфов. Глобальная область видимости, значение переменной можно изменить. Переменная var объявляется в самом начале скрипта, но значение записывается только тогда, когда доходит код до той строки, где значение присваивается.
@@ -457,6 +622,61 @@ fetchData((result) => {
 
 Функции обратного вызова используются часто для обработки асинхронных операций, обработки событий, запросов к серверу и других сценариев, где результат операции может быть неизвестен на момент вызова функции. Однако, использование большого количества вложенных коллбэков может привести к "callback hell" - сложному для читаемости и поддержки коду.
 
+## Что такое async/await?
+Async/await —  способ написания асинхронного (неблокирующего) кода в JS. Им оборачивают промис. Он делает код более читаемым и чистым, чем промисы и функции обратного вызова. Однако для использования async/await необходимо хорошо знать промисы.
+
+```javascript
+// промис
+function callApi(){
+	return fetch('url/to/api/endpoint')
+        .then(resp => resp.json())
+        .then(data => {
+            // работаем с данными
+        }).catch(err => {
+            // работаем с ошибкой
+        })
+}
+
+// async/await
+// для перехвата ошибок используется try/catch
+async function callApi(){
+	try{
+            const resp = await fetch('url/to/api/endpoint')
+            const data = await res.json()
+		// работаем с данными
+	} catch(e){
+		// работаем с ошибкой
+	}
+}
+```
+Использование ключевого слова «async» перед функцией заставляет ее возвращать промис.
+
+Ключевое слово «await» можно использовать только внутри асинхронной функции. Использование «await» внутри другой функции приведет к ошибке. Await ожидает завершения выражения справа, чтобы вернуть его значение перед выполнением следующей строчки кода.
+```javascript
+const giveMeOne = async() => 1
+
+function getOne(){
+    try{
+        const num = await giveMeOne()
+        console.log(num)
+    } catch(e){
+        console.log(e)
+    }
+}
+// Uncaught SyntaxError: await is only valid in an async function
+
+async function getTwo(){
+    try{
+        const num1 = await giveMeOne()
+        const nm2 = await giveMeOne()
+        return num1 + num2
+    } catch(e){
+        console.log(e)
+    }
+}
+
+await getTwo() // 2
+```
 ## Что такое промис (Promise)?
 
 Промис (Promise) - это объект в JavaScript, представляющий результат успешного завершения или ошибки асинхронной операции. Он позволяет более удобно и читаемо обрабатывать асинхронный код, делая его более структурированным и предсказуемым.
@@ -539,3 +759,122 @@ fetchData()
 2. **Выполнено (Fulfilled)**: Состояние, в котором асинхронная операция успешно завершена. Промис переходит в это состояние, когда вызывается функция `resolve()`, передавая ей результат операции.
 
 3. **Отклонено (Rejected)**: Состояние, в котором асинхронная операция завершается с ошибкой. Промис переходит в это состояние, когда вызывается функция `reject()`, передавая ей информацию об ошибке.
+
+## В чем разница между явным и неявным преобразованием или приведением к типу (Implicit and Explicit Coercion)?
+
+Неявное преобразование — это способ приведения значения к другому типу без нашего ведома
+
+```javascript
+console.log(1 + '6')
+console.log(false + true)
+console.log(6 * '2')
+```
+
+Явное преобразование предполагает наше участие в приведении значения к другому типу:
+
+```javascript
+console.log(1 + parseInt('6'))
+```
+
+## Что такое классы?
+Классы — это относительно новый способ написания функций-конструкторов в JS. Это синтаксический сахар для функций-конструкторов. В основе классов лежат те же прототипы и прототипное наследование:
+```javascript
+// ES5
+function Person(firstName, lastName, age, address){
+    this.firstName = firstName
+    this.lastName = lastName
+    this.age = age
+    this.address = address
+}
+
+Person.self = function(){
+    return this
+}
+
+Person.prototype.toString = function(){
+    return '[object Person]'
+}
+
+Person.prototype.getFullName = function(){
+    return this.firstName + ' ' + this.lastName
+}
+
+// ES6
+class Person{
+    constructor(firstName, lastName, age, address){
+        this.firstName = firstName
+        this.lastName = lastName
+        this.age = age
+        this.address = address
+    }
+
+    static self(){
+        return this
+    }
+
+    toString(){
+        return '[object Person]'
+    }
+
+    getFullName(){
+        return `${this.firstName} ${this.lastName}`
+    }
+}
+```
+
+Переопределение методов и наследование от другого класса:
+```javascript
+// ES5
+Employee.prototype = Object.create(Person.prototype)
+
+function Employee(firstName, lastName, age, address, jobTitle, yearStarted){
+    Person.call(this, firstName, lastName, age, address)
+    this.jobTitle = jobTitle
+    this.yearStarted = yearStarted
+}
+
+Employee.prototype.describe = function(){
+    return `I am ${this.getFullName()} and I have a position of #{this.jobTitle} and I started at ${this.yearStarted}}`
+}
+
+Employee.prototype.toString = function(){
+    return '[object Employee]'
+}
+
+// ES6
+class Employee extends Person{ // наследуемся от Person
+    constructor(firstName, lastName, age, address, jobTitle, yearStarted){
+        super(firstName, lastName, age, address)
+        this.jobTitle = jobTitle
+        this.yearStarted = yearStarted
+    }
+
+    describe(){
+       return `I am ${this.getFullName()} and I have a position of #{this.jobTitle} and I started at ${this.yearStarted}}` 
+    }
+
+    toString(){ // переопределяем метод toString класса Person
+        return '[object Employee]'
+    }
+}
+```
+
+## Для чего используется ключевое слово «new»?
+
+Ключевое слово «new» используется в функциях-конструкторах для создания нового объекта (нового экземпляра класса).
+
+```javascript
+function Employee(name, position, yearHired){
+    this.name = name
+    this.position = position
+    this.yearHired = yearHired
+}
+
+const emp = new Employee('Marko Polo', 'Software Development', 2017)
+```
+
+Ключевое слово «new» делает 4 вещи:
+>1. Создает пустой объект.
+>2. Привязывает к нему значение this.
+>3. Функция наследует от functionName.prototype.
+>4. Возвращает значение this, если не указано иное.
