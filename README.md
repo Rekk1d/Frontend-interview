@@ -878,3 +878,181 @@ const emp = new Employee('Marko Polo', 'Software Development', 2017)
 >2. Привязывает к нему значение this.
 >3. Функция наследует от functionName.prototype.
 >4. Возвращает значение this, если не указано иное.
+
+## Что такое запоминание или мемоизация (Memoization)?
+Мемоизация — это прием создания функции, способной запоминать ранее вычисленные результаты или значения. Преимущество мемоизации заключается в том, что мы избегаем повторного выполнения функции с одинаковыми аргументами. Недостатком является то, что мы вынуждены выделять дополнительную память для сохранения результатов.
+
+## Как реализовать вспомогательную функцию запоминания?
+
+```javascript
+function memoize(fn){
+    const cache = {}
+    return function(param){
+        if(cache[param]){
+            console.log('cached')
+            return cache[param]
+        } else{
+            let result = fn(param)
+            cache[param] = result
+            console.log('not cached')
+            return result
+        }
+    }
+}
+
+const toUpper = (str = '') => str.toUpperCase()
+
+const toUpperMemoized = memoize(toUpper)
+
+toUpperMemoized('abcdef')
+toUpperMemoized('abcdef') // не выполнится
+```
+
+## Что такое DOM?
+
+DOM или Document Object Model (объектная модель документа) — это прикладной программный интерфейс (API) для работы с HTML и XML документами. Когда браузер первый раз читает («парсит») HTML документ, он формирует большой объект, действительно большой объект, основанный на документе — DOM. DOM представляет собой древовидную структуру (дерево документа). DOM используется для взаимодействия и изменения самой структуры DOM или его отдельных элементов и узлов.
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document Object Model</title>
+</head>
+
+<body>
+    <div>
+        <p>
+            <span></span>
+        </p>
+        <label></label>
+        <input>
+    </div>
+</body>
+
+</html>
+```
+
+DOM этого HTML выглядит так:
+
+![img.png](img.png)
+
+## Что такое распространение события (Event Propagation)?
+
+Когда какое-либо событие происходит в элементе DOM, оно на самом деле происходит не только в нем. Событие «распространяется» от объекта Window до вызвавшего его элемента (event.target). При этом событие последовательно пронизывает (затрагивает) всех предков целевого элемента. Распространение события имеет три стадии или фазы:
+Фаза погружения (захвата, перехвата) — событие возникает в объекте Window и опускается до цели события через всех ее предков.
+Целевая фаза — это когда событие достигает целевого элемента.
+Фаза всплытия — событие поднимается от event.target, последовательно проходит через всех его предков и достигает объекта Window.
+
+![img_1.png](img_1.png)
+
+## Что такое всплытие события?
+
+Когда событие происходит в элементе DOM, оно затрагивает не только этот элемент. Событие «всплывает» (подобно пузырьку воздуха в воде), переходит от элемента, вызвавшего событие (event.target), к его родителю, затем поднимается еще выше, к родителю родителя элемента, пока не достигает объекта Window.
+
+Допустим, у нас есть такая разметка:
+```html
+<div class="grandparent">
+    <div class="parent">
+        <div class="child">1</div>
+    </div>
+</div>
+```
+
+И такой JS:
+```javascript
+function addEvent(el, event, callback, isCapture = false) {
+    if (!el || !event || !callback || typeof callback !== 'function') return
+
+    if (typeof el === 'string') {
+        el = document.querySelector(el)
+    }
+    el.addEventListener(event, callback, isCapture)
+}
+
+addEvent(document, 'DOMContentLoaded', () => {
+    const child = document.querySelector('.child')
+    const parent = document.querySelector('.parent')
+    const grandparent = document.querySelector('.grandparent')
+
+    addEvent(child, 'click', function(e) {
+        console.log('child')
+    })
+
+    addEvent(parent, 'click', function(e) {
+        console.log('parent')
+    })
+
+    addEvent(grandparent, 'click', function(e) {
+        console.log('grandparent')
+    })
+
+    addEvent('html', 'click', function(e) {
+        console.log('html')
+    })
+
+    addEvent(document, 'click', function(e) {
+        console.log('document')
+    })
+
+    addEvent(window, 'click', function(e) {
+        console.log('window')
+    })
+})
+```
+
+У метода addEventListener есть третий необязательный параметр — useCapture. Когда его значение равняется false (по умолчанию), событие начинается с фазы всплытия. Когда его значение равняется true, событие начинается с фазы погружения (для «прослушивателей» событий, прикрепленных к цели события, событие находится в целевой фазе, а не в фазах погружения или всплытия. События в целевой фазе инициируют все прослушиватели на элементе в том порядке, в котором они были зарегистрированы независимо от параметра useCapture — прим. пер.). Если мы кликнем по элементу child, в консоль будет выведено: child, parent, grandparent, html, document, window. Вот что такое всплытие события.
+
+##  Что такое погружение события?
+
+Когда событие происходит в элементе DOM, оно происходит не только в нем. В фазе погружения событие опускается от объекта Window до цели события через всех его предков.
+
+JS Код из прошлого примера
+
+У метода addEventListener есть третий необязательный параметр — useCapture. Когда его значение равняется false (по умолчанию), событие начинается с фазы всплытия. Когда его значение равняется true, событие начинается с фазы погружения. Если мы кликнем по элементу child, то увидим в консоли следующее: window, document, html, grandparent, parent, child. Это и есть погружение события.
+
+## В чем разница между методами event.preventDefault() и event.stopPropagation()?
+
+Метод event.preventDefault() отключает поведение элемента по умолчанию. Если использовать этот метод в элементе form, то он предотвратит отправку формы (submit). Если использовать его в contextmenu, то контекстное меню будет отключено (данный метод часто используется в keydown для переопределения клавиатуры, например, при создании музыкального/видео плеера или текстового редактора — прим. пер.). Метод event.stopPropagation() отключает распространение события (его всплытие или погружение).
+
+
+## Как узнать об использовании метода event.preventDefault()?
+
+Для этого мы можем использовать свойство event.defaultPrevented, возвращающее логическое значение, служащее индикатором применения к элементу метода event.preventDefault.
+
+##  Что такое цель события или целевой элемент (event.target)?
+
+Простыми словами, event.target — это элемент, в котором происходит событие, или элемент, вызвавший событие.
+
+
+Имеем такую разметку:
+
+```html
+<div onclick="clickFunc(event)">
+    <div>
+        <div>
+            <button>
+                Button
+            </button>
+        </div>
+    </div>
+</div>
+```
+
+И такой простенький JS:
+
+```javascript
+function clickFunc(event) {
+    console.log(event.target)
+}
+```
+
+Мы прикрепили «слушатель» к внешнему div. Однако если мы нажмем на кнопку, то получим в консоли разметку этой кнопки. Это позволяет сделать вывод, что элементом, вызвавшим событие, является именно кнопка, а не внешний или внутренние div.
+
+## Что такое текущая цель события (event.currentTarget)?
+
+Event.currentTarget — это элемент, к которому прикреплен прослушиватель событий.
+
+Мы прикрепили слушатель к внешнему div. Куда бы мы ни кликнули, будь то кнопка или один из внутренних div, в консоли мы всегда получим разметку внешнего div. Это позволяет заключить, что event.currentTarget — это элемент, к которому прикреплен прослушиватель событий.
