@@ -1,4 +1,4 @@
-# Welcome to club buddy
+# Welcome to the club buddy
 
 ## Сборник вопросов для собеседования на frontend разработчика
 
