@@ -4,4 +4,5 @@
 
 ### Темы:
 - [Javascript](Javascript.md)
+- [Typescript](Typescript.md)
 - [React](React.md)
