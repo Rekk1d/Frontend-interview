@@ -281,3 +281,92 @@ const name: string = person.name as string;
 // using `<>`
 const name: string = <string>person.name;
 ```
+
+## typeof
+
+Оператор typeof в TypeScript используется для получения типа переменной или выражения.
+
+Примеры использования:
+
+1. Получение типа переменной
+
+```typescript
+const myString = "Hello, TypeScript!";
+type MyStringType = typeof myString; // MyStringType будет равен string
+```
+2. Типизация функций
+
+```typescript
+const myFunction = (x: number) => x * 2;
+
+type MyFunctionType = typeof myFunction; // MyFunctionType будет равен (x: number) => number
+```
+
+3. Создание типов на основе объектов
+
+```typescript
+const user = {
+    name: "Alice",
+    age: 30,
+};
+
+type UserType = typeof user; // UserType будет равен { name: string; age: number; }
+```
+
+4. Использование с интерфейсами и классами
+
+```typescript
+class Person {
+    constructor(public name: string, public age: number) {}
+}
+
+type PersonType = typeof Person; // PersonType будет равен typeof Person (конструктор класса)
+```
+
+## keyof
+
+keyof — это оператор типа, который принимает тип объекта и возвращает тип, представляющий все имена его ключей. Результатом работы keyof является объединение строк или чисел, которое содержит литералы всех возможных ключей объекта.
+
+```typescript
+interface User {
+  id: number;
+  name: string;
+  age: number;
+}
+
+type UserKeys = keyof User;
+// UserKeys теперь равно 'id' | 'name' | 'age'
+```
+
+Оператор keyof может быть очень полезен при написании обобщенных функций, которые работают с объектами. Он гарантирует, что функции работают только с существующими ключами объекта.
+
+```typescript
+function getValue<T, K extends keyof T>(obj: T, key: K): T[K] {
+  return obj[key];
+}
+
+const user: User = {
+  id: 1,
+  name: "Alice",
+  age: 30
+};
+
+const userName = getValue(user, 'name'); // Возвращает 'Alice'
+const userAge = getValue(user, 'age'); // Возвращает 30
+// const userUnknown = getValue(user, 'email'); // Ошибка: Аргумент типа '"email"' не может быть присвоен параметру типа '"id" | "name" | "age"'
+```
+
+## infer
+
+infer в TypeScript — это ключевое слово, которое используется в условных типах для автоматического вывода типа. Оно позволяет TypeScript "угадывать" тип переменной на основе контекста, в котором она используется. Это особенно полезно, когда вы хотите создать обобщенные типы или функции, которые могут работать с различными типами данных.
+
+infer используется только в conditional types и в расширениях(extends).
+
+Предположим, у нас есть функция, которая принимает массив и возвращает его первый элемент. Мы можем использовать infer, чтобы автоматически вывести тип элемента массива:
+
+```typescript
+type FirstElement<T> = T extends (infer U)[] ? U : never;
+
+type NumberArray = FirstElement<number[]>; // NumberArray будет равен number
+type StringArray = FirstElement<string[]>; // StringArray будет равен string
+```
