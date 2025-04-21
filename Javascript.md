@@ -131,6 +131,10 @@ console.log(o.hasOwnProperty('toString')) // false
 >2. Написать свою функцию, которая будет проходить через каждое св-во и сравнивать со свойством другого объекта. Пример:
 ```javascript
 function isDeepEqual(obj1, obj2) {
+    if (obj1 === obj2) {
+        return true;
+    }
+    
     var keys1 = Object.keys(obj1);
     var keys2 = Object.keys(obj2);
  
@@ -172,6 +176,7 @@ console.log(o.toString()) // [object Object]
 ```javascript
 console.log(o.toString === Object.prototype.toString) // true
 ```
+
 ### Разница между `call`, `apply` и `bind`
 
 В JavaScript, методы `call`, `apply` и `bind` используются для установки контекста выполнения функции и передачи аргументов.
